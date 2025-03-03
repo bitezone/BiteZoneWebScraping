@@ -6,6 +6,7 @@ This script scrapes the SUNY Oswego dining hall menu website
 """
 
 import time
+import os
 from selenium import webdriver
 from selenium.common import NoSuchElementException, TimeoutException
 from selenium.webdriver import ActionChains
@@ -16,23 +17,23 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-CHROME_PATH = "/usr/bin/chromium"
-CHROMEDRIVER_PATH = "/usr/bin/chromedriver"
+env = os.getenv("ENV", "local")
 
 chrome_options = Options()
-chrome_options.add_argument("--headless")
 chrome_options.add_argument("--window-size=1920x1080")
 chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage") # disabling /dev/shm and use /tmp
+chrome_options.add_argument("--disable-dev-shm-usage")
 
-##### Deployment
-chrome_options.binary_location = CHROME_PATH
-
-##### Local
-# driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-# Deployment
-service = Service(executable_path=CHROMEDRIVER_PATH)
-driver = webdriver.Chrome(service=service, options=chrome_options)
+if env == "local":
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+elif env == "deployment":
+    chrome_options.add_argument("--headless")
+    chrome_options.binary_location = os.getenv("CHROME_PATH")
+    service = Service(executable_path=os.getenv("CHROMEDRIVER_PATH"))
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver.implicitly_wait(60)
+else:
+    raise ValueError("Invalid ENVIRONMENT value. Set to either 'local' or 'deployment'.")
 
 ##### Getting SUNY Oswego Dining hall menu
 url = "https://netnutrition.cbord.com/nn-prod/oswego"
@@ -59,7 +60,7 @@ except TimeoutException:
 
 # navigation_list[0].click()
 
-time.sleep(5)
+time.sleep(1)
 navigation_contexts = ["nav-unit-selector", "nav-date-selector", "nav-meal-selector"]
 for navigation_context in navigation_contexts:
     navigation_selector = driver.find_element(By.XPATH, f"//div[@id='{navigation_context}']")

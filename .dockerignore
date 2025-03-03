@@ -1,0 +1,9 @@
+.git/
+.idea/
+.venv/
+.DS_Store
+*.log
+*.md
+*.sh
+*.env
+*.tar
