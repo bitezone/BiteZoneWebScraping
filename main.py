@@ -28,6 +28,7 @@ if env == "local":
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 elif env == "deployment":
     chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--disable-gpu")
     chrome_options.binary_location = os.getenv("CHROME_PATH")
     service = Service(executable_path=os.getenv("CHROMEDRIVER_PATH"))
     driver = webdriver.Chrome(service=service, options=chrome_options)
@@ -77,10 +78,7 @@ for navigation_context in navigation_contexts:
         navigation_list[0].click()
     elif navigation_context == "nav-unit-selector":
         navigation_list[1].click()
-print("sucessful until this point")
 
-##### Detecting each individual cells
-# //*[contains(@class, 'cbo_nn_menuLinkCell')]
 
 individual_menu_links = WebDriverWait(driver, 10).until(
     EC.visibility_of_all_elements_located((By.XPATH, "//*[contains(@class, 'cbo_nn_menuLinkCell')]"))
