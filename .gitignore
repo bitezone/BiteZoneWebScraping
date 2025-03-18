@@ -1,3 +1,5 @@
 .env
 *.tar
 *.sh
+
+/scripts/
