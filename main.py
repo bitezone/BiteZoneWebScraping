@@ -24,7 +24,6 @@ def main():
     for i in range(1, 4):
         print(i)
         app.scrape_each_dining_hall(i)
-
     atexit.register(WebDriverManager.quit_driver())
 
 
