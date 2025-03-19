@@ -7,6 +7,7 @@ This script scrapes the SUNY Oswego dining hall menu website
 
 import time
 import os
+import atexit
 from typing import List
 from selenium import webdriver
 from selenium.webdriver.chrome.webdriver import WebDriver
@@ -20,31 +21,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-env = os.getenv("ENV", "local")
-
-chrome_options = Options()
-chrome_options.add_argument("--window-size=1920x1080")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
-
-
-def setUpEnvironmentConfig():
-    if env == "local":
-        driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()), options=chrome_options
-        )
-    elif env == "deployment":
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.binary_location = os.getenv("CHROME_PATH")
-        service = Service(executable_path=os.getenv("CHROMEDRIVER_PATH"))
-        driver = webdriver.Chrome(service=service, options=chrome_options)
-        driver.implicitly_wait(60)
-    else:
-        raise ValueError(
-            "Invalid ENVIRONMENT value. Set to either 'local' or 'deployment'."
-        )
-    return driver
+from web_driver import WebDriverManager
 
 
 def clickForPopUpAcknowledgement(driver: WebDriver):
@@ -94,6 +71,17 @@ def selectDateForEachMenu(driver: WebDriver, idx: int):
             navigation_list[idx].click()
 
 
+def navigate_breadcrumb(driver: WebDriver):
+    breadcrumb_nav = WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located(
+            (By.XPATH, "//nav[@aria-label='Breadcrumb Navigation']")
+        )
+    )
+    back_buttons: List[WebElement] = breadcrumb_nav.find_elements(By.XPATH, "./a")
+    print(back_buttons[2].get_attribute("textContent"))  # Selected date
+    back_buttons[0].click()
+
+
 def scrapeEachDiningHall(driver: WebDriver, idx: int):
 
     selectDateForEachMenu(driver, idx)
@@ -105,7 +93,6 @@ def scrapeEachDiningHall(driver: WebDriver, idx: int):
     )
 
     for i in range(len(individual_menu_links)):
-        print(i)
         individual_menu_links = WebDriverWait(driver, 10).until(
             EC.visibility_of_all_elements_located(
                 (By.XPATH, "//*[contains(@class, 'cbo_nn_menuLinkCell')]")
@@ -113,19 +100,12 @@ def scrapeEachDiningHall(driver: WebDriver, idx: int):
         )
 
         individual_menu_link = individual_menu_links[i]
-        print(individual_menu_link.text)
 
         a_tag = WebDriverWait(individual_menu_link, 10).until(
             EC.visibility_of_element_located((By.XPATH, "./a"))
         )
         a_tag.click()
         time.sleep(3)
-
-        breadcrumb_nav = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(
-                (By.XPATH, "//nav[@aria-label='Breadcrumb Navigation']")
-            )
-        )
 
         individual_menu_selector = WebDriverWait(driver, 10).until(
             EC.visibility_of_element_located(
@@ -135,9 +115,7 @@ def scrapeEachDiningHall(driver: WebDriver, idx: int):
 
         getMenuDataFromSelectedPage(individual_menu_selector)
 
-        back_buttons: List[WebElement] = breadcrumb_nav.find_elements(By.XPATH, "./a")
-        print(back_buttons[2].get_attribute("textContent"))  # Selected date
-        back_buttons[0].click()
+        navigate_breadcrumb(driver)
         time.sleep(3)
 
 
@@ -169,7 +147,7 @@ def getMenuDataFromSelectedPage(individual_menu_selector: WebElement):
 
 def main():
 
-    driver: WebDriver = setUpEnvironmentConfig()
+    driver: WebDriver = WebDriverManager.get_driver()
 
     url = "https://netnutrition.cbord.com/nn-prod/oswego"
     driver.get(url)
@@ -180,7 +158,7 @@ def main():
         print(i)
         scrapeEachDiningHall(driver, i)
 
-    driver.quit()
+    atexit.register(WebDriverManager.quit_driver())
 
 
 if __name__ == "__main__":
