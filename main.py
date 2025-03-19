@@ -24,7 +24,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 from web_driver import WebDriverManager
 
 
-def clickForPopUpAcknowledgement(driver: WebDriver):
+def clickForPopUpAcknowledgement():
+    driver: WebDriver = WebDriverManager.get_driver()
     try:
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located(
@@ -44,7 +45,8 @@ def clickForPopUpAcknowledgement(driver: WebDriver):
     time.sleep(1)
 
 
-def selectDateForEachMenu(driver: WebDriver, idx: int):
+def selectDateForEachMenu(idx: int):
+    driver: WebDriver = WebDriverManager.get_driver()
     navigation_contexts = [
         "nav-unit-selector",
         "nav-date-selector",
@@ -71,7 +73,8 @@ def selectDateForEachMenu(driver: WebDriver, idx: int):
             navigation_list[idx].click()
 
 
-def navigate_breadcrumb(driver: WebDriver):
+def navigate_breadcrumb():
+    driver: WebDriver = WebDriverManager.get_driver()
     breadcrumb_nav = WebDriverWait(driver, 10).until(
         EC.visibility_of_element_located(
             (By.XPATH, "//nav[@aria-label='Breadcrumb Navigation']")
@@ -82,9 +85,10 @@ def navigate_breadcrumb(driver: WebDriver):
     back_buttons[0].click()
 
 
-def scrapeEachDiningHall(driver: WebDriver, idx: int):
+def scrapeEachDiningHall(idx: int):
+    driver: WebDriver = WebDriverManager.get_driver()
 
-    selectDateForEachMenu(driver, idx)
+    selectDateForEachMenu(idx)
 
     individual_menu_links = WebDriverWait(driver, 10).until(
         EC.visibility_of_all_elements_located(
@@ -115,7 +119,7 @@ def scrapeEachDiningHall(driver: WebDriver, idx: int):
 
         getMenuDataFromSelectedPage(individual_menu_selector)
 
-        navigate_breadcrumb(driver)
+        navigate_breadcrumb()
         time.sleep(3)
 
 
@@ -153,10 +157,10 @@ def main():
     driver.get(url)
     driver.set_window_size(1920, 1080)
     print("Driver Started")
-    clickForPopUpAcknowledgement(driver)
+    clickForPopUpAcknowledgement()
     for i in range(1, 4):
         print(i)
-        scrapeEachDiningHall(driver, i)
+        scrapeEachDiningHall(i)
 
     atexit.register(WebDriverManager.quit_driver())
 
