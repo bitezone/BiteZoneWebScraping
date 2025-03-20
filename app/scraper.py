@@ -6,6 +6,7 @@ from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from sqlalchemy.orm import Session
 
 from .web_driver import WebDriverManager
 
@@ -68,10 +69,11 @@ def navigate_breadcrumb():
     )
     back_buttons: List[WebElement] = breadcrumb_nav.find_elements(By.XPATH, "./a")
     print(back_buttons[2].get_attribute("textContent"))  # Selected date
+    print(back_buttons[1].get_attribute("textContent"))
     back_buttons[0].click()
 
 
-def scrape_each_dining_hall(idx: int):
+def scrape_each_dining_hall(idx: int, session: Session):
     driver: WebDriver = WebDriverManager.get_driver()
 
     select_date_for_each_menu(idx)
@@ -103,13 +105,13 @@ def scrape_each_dining_hall(idx: int):
             )
         )
 
-        get_menu_data_from_selected_page(individual_menu_selector)
+        get_menu_data_from_selected_page(individual_menu_selector, session)
 
         navigate_breadcrumb()
         time.sleep(3)
 
 
-def get_menu_data_from_selected_page(individual_menu_selector: WebElement):
+def get_menu_data_from_selected_page(individual_menu_selector: WebElement, session: Session):
 
     menu_items_and_categories = individual_menu_selector.find_elements(
         By.XPATH, "//tbody//tr"
@@ -121,16 +123,16 @@ def get_menu_data_from_selected_page(individual_menu_selector: WebElement):
             category_selector = raw_item_selector.find_element(
                 By.XPATH, ".//div[@role='button']"
             )
-            print(category_selector.get_attribute("innerHTML"))
+            # print(category_selector.get_attribute("innerHTML"))
             category_text = category_selector.get_attribute("innerHTML").split("<")[0]
-            print("--Category--")
-            print(category_text)
-            print("-----")
+            # print("--Category--")
+            # print(category_text)
+            # print("-----")
         else:
             # menu raw_item_selector
             menu_item_selector = raw_item_selector.find_element(
                 By.XPATH, ".//a[@class='cbo_nn_itemHover']"
             )
             menu_item_text = menu_item_selector.get_attribute("innerHTML").split("<")[0]
-            print(menu_item_text)
+            # print(menu_item_text)
 

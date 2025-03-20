@@ -9,12 +9,15 @@ import atexit
 import app
 
 from selenium.webdriver.chrome.webdriver import WebDriver
+from sqlalchemy.orm import Session
 
 from app.web_driver import WebDriverManager
+from app.db import get_db
 
 def main():
 
     driver: WebDriver = WebDriverManager.get_driver()
+    session: Session = get_db()
 
     url = "https://netnutrition.cbord.com/nn-prod/oswego"
     driver.get(url)
@@ -23,7 +26,7 @@ def main():
     app.click_for_popup_acknowledgement()
     for i in range(1, 4):
         print(i)
-        app.scrape_each_dining_hall(i)
+        app.scrape_each_dining_hall(i, session)
     atexit.register(WebDriverManager.quit_driver())
 
 
