@@ -1,17 +1,15 @@
 import time
 from typing import List
-from datetime import date
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from sqlalchemy.orm import Session
 
-from .models import Menu, MenuItem
 from .utils import convert_to_date
-from .enums import MealLocation
+from .db import *
+
 
 from .web_driver import WebDriverManager
 
@@ -65,7 +63,7 @@ def select_date_for_each_menu(idx: int):
             navigation_list[idx].click()
 
 
-def navigate_breadcrumb(session: Session):
+def navigate_breadcrumb():
     driver: WebDriver = WebDriverManager.get_driver()
     breadcrumb_nav = WebDriverWait(driver, 10).until(
         EC.visibility_of_element_located(
@@ -79,15 +77,17 @@ def navigate_breadcrumb(session: Session):
     meal_time_format = meal_date_time.split(", ")[1]
     meal_date_format = convert_to_date(meal_date_raw)
 
-    menu = Menu(
-        date=meal_date_format, meal_time=meal_time_format, meal_location=MealLocation(meal_location)
+    
+    add_or_update_menu(
+        meal_date_format=meal_date_format,
+        meal_time_format=meal_time_format,
+        meal_location=meal_location,
     )
-    session.add(menu)
-    session.commit()
+
     back_buttons[0].click()
 
 
-def scrape_each_dining_hall(idx: int, session: Session):
+def scrape_each_dining_hall(idx: int):
     driver: WebDriver = WebDriverManager.get_driver()
 
     select_date_for_each_menu(idx)
@@ -119,15 +119,13 @@ def scrape_each_dining_hall(idx: int, session: Session):
             )
         )
 
-        get_menu_data_from_selected_page(individual_menu_selector, session)
+        get_menu_data_from_selected_page(individual_menu_selector)
 
-        navigate_breadcrumb(session)
+        navigate_breadcrumb()
         time.sleep(3)
 
 
-def get_menu_data_from_selected_page(
-    individual_menu_selector: WebElement, session: Session
-):
+def get_menu_data_from_selected_page(individual_menu_selector: WebElement):
 
     menu_items_and_categories = individual_menu_selector.find_elements(
         By.XPATH, "//tbody//tr"
