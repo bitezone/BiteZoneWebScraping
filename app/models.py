@@ -30,7 +30,7 @@ class Menu(Base):
     )
 
     def __repr__(self):
-        return f"Menu(id={self.id}, date={self.date}, meal_time={self.meal_time}, meal_location={self.meal_location})"
+        return f"Menu(id={self.id}, date={self.date}, meal_time={self.meal_time}, meal_location={self.meal_location}, menu_items={self.menu_items})"
 
 
 class MenuItem(Base):

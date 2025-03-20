@@ -7,6 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+from .models import Menu, MenuItem
+
 from .utils import convert_to_date
 from .db import *
 
@@ -37,18 +39,18 @@ def click_for_popup_acknowledgement():
 
 
 def select_date_for_each_menu(idx: int):
-    """ navigating to respective dining hall through selecting drop down boxes
+    """navigating to respective dining hall through selecting drop down boxes
 
     Parameters
     ----------
     idx: int
-    
+
         the index for the selection of dining hall
-        
+
         Lakeside Dining Center - 1
-        
+
         Cooper Dining Center - 2
-        
+
         Pathfinder Dining Center - 3
     """
     driver: WebDriver = WebDriverManager.get_driver()
@@ -79,9 +81,13 @@ def select_date_for_each_menu(idx: int):
 
 
 def navigate_breadcrumb():
-    """ getting information relating to menu(date, time, location) and navigating
-    
-    """
+    """getting information relating to menu(date, time, location) and navigating"""
+    back_buttons = get_navigation_breadcrumb()
+
+    back_buttons[0].click()
+
+
+def get_navigation_breadcrumb():
     driver: WebDriver = WebDriverManager.get_driver()
     breadcrumb_nav = WebDriverWait(driver, 10).until(
         EC.visibility_of_element_located(
@@ -89,36 +95,22 @@ def navigate_breadcrumb():
         )
     )
     back_buttons: List[WebElement] = breadcrumb_nav.find_elements(By.XPATH, "./a")
-    meal_date_time = back_buttons[2].get_attribute("textContent")
-    meal_location = back_buttons[1].get_attribute("textContent").split(" ")[0]
-    meal_date_raw = meal_date_time.split(",")[0]
-    meal_time_format = meal_date_time.split(", ")[1]
-    meal_date_format = convert_to_date(meal_date_raw)
-
-
-    # db function to modify the menu if new or updated menu is detected
-    add_or_update_menu(
-        meal_date_format=meal_date_format,
-        meal_time_format=meal_time_format,
-        meal_location=meal_location,
-    )
-
-    back_buttons[0].click()
+    return back_buttons
 
 
 def scrape_each_dining_hall(idx: int) -> None:
-    """ scraping data from each dining hall
+    """scraping data from each dining hall
 
     Parameters
     ----------
     idx: int
-    
+
         the index for the selection of dining hall
-        
+
         Lakeside Dining Center - 1
-        
+
         Cooper Dining Center - 2
-        
+
         Pathfinder Dining Center - 3
     """
     driver: WebDriver = WebDriverManager.get_driver()
@@ -148,21 +140,35 @@ def scrape_each_dining_hall(idx: int) -> None:
         a_tag.click()
         time.sleep(3)
 
-        individual_menu_selector = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(
-                (By.XPATH, "//div[contains(@class, 'table-responsive')]")
-            )
+        # individual_menu_selector = WebDriverWait(driver, 10).until(
+        #     EC.visibility_of_element_located(
+        #         (By.XPATH, "//div[contains(@class, 'table-responsive')]")
+        #     )
+        # )
+
+        back_buttons = get_navigation_breadcrumb()
+        meal_date_time = back_buttons[2].get_attribute("textContent")
+        meal_location = back_buttons[1].get_attribute("textContent").split(" ")[0]
+        meal_date_raw = meal_date_time.split(",")[0]
+        meal_time_format = meal_date_time.split(", ")[1]
+        meal_date_format = convert_to_date(meal_date_raw)
+
+        # db function to modify the menu if new or updated menu is detected
+        menu = add_or_update_menu(
+            meal_date_format=meal_date_format,
+            meal_time_format=meal_time_format,
+            meal_location=meal_location,
         )
 
-        get_menu_data_from_selected_page(individual_menu_selector)
+        get_menu_data_from_selected_page(individual_menu_selector, menu)
 
         # reversing back to select dining menu
         navigate_breadcrumb()
         time.sleep(3)
 
 
-def get_menu_data_from_selected_page(individual_menu_selector: WebElement):
-    """ getting menu_items and menu_items category from the page
+def get_menu_data_from_selected_page(individual_menu_selector: WebElement, menu: Menu):
+    """getting menu_items and menu_items category from the page
 
     Parameters
     ----------
@@ -172,22 +178,24 @@ def get_menu_data_from_selected_page(individual_menu_selector: WebElement):
     menu_items_and_categories = individual_menu_selector.find_elements(
         By.XPATH, ".//tbody//tr"
     )
-
+    
+    
+    menu_items_li: List[MenuItem] = []
+    category_text: str | None = None
+    
     for raw_item_selector in menu_items_and_categories:
         isCategory = True if raw_item_selector.get_attribute("role") else False
+        
         if isCategory:
             category_selector = raw_item_selector.find_element(
                 By.XPATH, ".//div[@role='button']"
             )
-            # print(category_selector.get_attribute("innerHTML"))
             category_text = category_selector.get_attribute("innerHTML").split("<")[0]
-            # print("--Category--")
-            # print(category_text)
-            # print("-----")
         else:
-            # menu raw_item_selector
             menu_item_selector = raw_item_selector.find_element(
                 By.XPATH, ".//a[@class='cbo_nn_itemHover']"
             )
             menu_item_text = menu_item_selector.get_attribute("innerHTML").split("<")[0]
-            # print(menu_item_text)
+            menu_item = create_menu_item_db(category_text, menu_item_text)
+            menu_items_li.append(menu_item)
+    connect_menu_and_menu_items(menu, menu_items_li)
