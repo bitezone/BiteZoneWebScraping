@@ -9,9 +9,9 @@ engine = create_engine(DATABASE_URL, echo=True)
 Base.metadata.create_all(bind=engine)
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False)
-
+db = SessionLocal()
 def get_db() -> Session:
-    db = SessionLocal()
+   
     try:
         return db
     finally:

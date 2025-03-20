@@ -27,7 +27,7 @@ def main():
     for i in range(1, 4):
         print(i)
         app.scrape_each_dining_hall(i, session)
-    atexit.register(WebDriverManager.quit_driver())
+    atexit.register(WebDriverManager.quit_driver)
 
 
 if __name__ == "__main__":

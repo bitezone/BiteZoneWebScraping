@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Date, Table, ForeignKey, Enum
 from sqlalchemy.orm import relationship, backref, DeclarativeBase
-from .enums import MealTime, MealLocation
+from .enums import MealLocation
 
 
 class Base(DeclarativeBase):
@@ -20,7 +20,7 @@ class Menu(Base):
 
     id = Column(Integer, primary_key=True)
     date = Column(Date, nullable=False)
-    meal_time = Column(Enum(MealTime), nullable=False)
+    meal_time = Column(String, nullable=False)
     meal_location = Column(Enum(MealLocation), nullable=False)
 
     menu_items = relationship(
