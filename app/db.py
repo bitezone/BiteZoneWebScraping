@@ -51,3 +51,5 @@ def add_or_update_menu(
         db.commit()
     else:
         print("data already there so no new stuff created")
+        
+

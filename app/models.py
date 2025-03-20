@@ -1,5 +1,7 @@
+from typing import List
 from sqlalchemy import Column, Integer, String, Date, Table, ForeignKey, Enum
-from sqlalchemy.orm import relationship, backref, DeclarativeBase
+from datetime import datetime
+from sqlalchemy.orm import relationship, backref, DeclarativeBase, mapped_column, Mapped
 from .enums import MealLocation
 
 
@@ -18,13 +20,13 @@ menu_items_assocation = Table(
 class Menu(Base):
     __tablename__ = "menus"
 
-    id = Column(Integer, primary_key=True)
-    date = Column(Date, nullable=False)
-    meal_time = Column(String, nullable=False)
-    meal_location = Column(Enum(MealLocation), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    date: Mapped[datetime] = mapped_column(nullable=False)
+    meal_time: Mapped[str] = mapped_column(nullable=False)
+    meal_location: Mapped[MealLocation] = mapped_column(nullable=False)
 
-    menu_items = relationship(
-        "MenuItem", secondary=menu_items_assocation, backref=backref("menus")
+    menu_items: Mapped[List["MenuItem"]] = relationship(
+        secondary=menu_items_assocation, back_populates="menus"
     )
 
     def __repr__(self):
@@ -37,6 +39,10 @@ class MenuItem(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     category = Column(String, nullable=False)
+
+    menus: Mapped[List["Menu"]] = relationship(
+        secondary=menu_items_assocation, back_populates="menu_items"
+    )
 
     def __repr__(self):
         return f"MenuItem(id={self.id}, name={self.name}, description={self.category})"
