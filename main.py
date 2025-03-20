@@ -2,10 +2,11 @@
 """
 main.py
 
-This script scrapes the SUNY Oswego dining hall menu website
+This main.py is the controller to scrapes the SUNY Oswego dining hall menu website and interaction between different py files within app folder.
 """
 
 import atexit
+import os
 import app
 
 from selenium.webdriver.chrome.webdriver import WebDriver
@@ -16,10 +17,11 @@ from app.web_driver import WebDriverManager
 def main():
 
     driver: WebDriver = WebDriverManager.get_driver()
-
-    url = "https://netnutrition.cbord.com/nn-prod/oswego"
+    url = os.getenv("SELECTED_WEBSCRAPE_URL") # Scrapes SUNY Oswego dining hall website
+    
     driver.get(url)
     driver.set_window_size(1920, 1080)
+    
     print("Driver Started")
     app.click_for_popup_acknowledgement()
     for i in range(1, 4):

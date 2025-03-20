@@ -15,6 +15,7 @@ from .web_driver import WebDriverManager
 
 
 def click_for_popup_acknowledgement():
+    """click to close pop up acknowledgement button if existed"""
     driver: WebDriver = WebDriverManager.get_driver()
     try:
         WebDriverWait(driver, 10).until(
@@ -36,6 +37,20 @@ def click_for_popup_acknowledgement():
 
 
 def select_date_for_each_menu(idx: int):
+    """ navigating to respective dining hall through selecting drop down boxes
+
+    Parameters
+    ----------
+    idx: int
+    
+        the index for the selection of dining hall
+        
+        Lakeside Dining Center - 1
+        
+        Cooper Dining Center - 2
+        
+        Pathfinder Dining Center - 3
+    """
     driver: WebDriver = WebDriverManager.get_driver()
     navigation_contexts = [
         "nav-unit-selector",
@@ -64,6 +79,9 @@ def select_date_for_each_menu(idx: int):
 
 
 def navigate_breadcrumb():
+    """ getting information relating to menu(date, time, location) and navigating
+    
+    """
     driver: WebDriver = WebDriverManager.get_driver()
     breadcrumb_nav = WebDriverWait(driver, 10).until(
         EC.visibility_of_element_located(
@@ -77,7 +95,8 @@ def navigate_breadcrumb():
     meal_time_format = meal_date_time.split(", ")[1]
     meal_date_format = convert_to_date(meal_date_raw)
 
-    
+
+    # db function to modify the menu if new or updated menu is detected
     add_or_update_menu(
         meal_date_format=meal_date_format,
         meal_time_format=meal_time_format,
@@ -87,9 +106,24 @@ def navigate_breadcrumb():
     back_buttons[0].click()
 
 
-def scrape_each_dining_hall(idx: int):
+def scrape_each_dining_hall(idx: int) -> None:
+    """ scraping data from each dining hall
+
+    Parameters
+    ----------
+    idx: int
+    
+        the index for the selection of dining hall
+        
+        Lakeside Dining Center - 1
+        
+        Cooper Dining Center - 2
+        
+        Pathfinder Dining Center - 3
+    """
     driver: WebDriver = WebDriverManager.get_driver()
 
+    # navigating to the respective page of dining hall
     select_date_for_each_menu(idx)
 
     individual_menu_links = WebDriverWait(driver, 10).until(
@@ -98,6 +132,7 @@ def scrape_each_dining_hall(idx: int):
         )
     )
 
+    # navigating to the specific menu on the selected dining hall
     for i in range(len(individual_menu_links)):
         individual_menu_links = WebDriverWait(driver, 10).until(
             EC.visibility_of_all_elements_located(
@@ -121,14 +156,21 @@ def scrape_each_dining_hall(idx: int):
 
         get_menu_data_from_selected_page(individual_menu_selector)
 
+        # reversing back to select dining menu
         navigate_breadcrumb()
         time.sleep(3)
 
 
 def get_menu_data_from_selected_page(individual_menu_selector: WebElement):
+    """ getting menu_items and menu_items category from the page
+
+    Parameters
+    ----------
+    individual_menu_selector: WebElement
+    """
 
     menu_items_and_categories = individual_menu_selector.find_elements(
-        By.XPATH, "//tbody//tr"
+        By.XPATH, ".//tbody//tr"
     )
 
     for raw_item_selector in menu_items_and_categories:

@@ -12,12 +12,23 @@ class WebDriverManager:
 
     @classmethod
     def get_driver(cls):
+        """ creating driver if not existed and returning the driver
+        Note: There can only be one driver shared amongst the program
+        """
         if cls._driver is None:
             cls._driver = cls._initialize_driver()
         return cls._driver
 
     @classmethod
     def _initialize_driver(cls):
+        """ initialize_driver depending on the configuration of ENV (local, deployment)
+        local
+        - result in direct installation of ChromeDriverManager
+        
+        deployment
+        - headless operation
+        - chromium and chromium-driver are expected to be installed (CHROME_PATH = "/usr/bin/chromium" CHROMEDRIVER_PATH = "/usr/bin/chromedriver")
+        """
         env = os.getenv("ENV", "local")
 
         chrome_options = Options()

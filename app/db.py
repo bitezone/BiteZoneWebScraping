@@ -7,7 +7,7 @@ from .models import Base, Menu
 from .enums import MealLocation
 
 # Exposed functions and variables
-__all__ = ['add_or_update_menu']
+__all__ = ["add_or_update_menu"]
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL, echo=True)
@@ -16,7 +16,21 @@ Base.metadata.create_all(bind=engine)
 SessionLocal = sessionmaker(bind=engine, autoflush=False)
 db = SessionLocal()
 
-def add_or_update_menu(meal_date_format: date, meal_time_format: str, meal_location: str) -> None:
+
+def add_or_update_menu(
+    meal_date_format: date, meal_time_format: str, meal_location: str
+) -> None:
+    """add or updates menu information into "menus" db
+
+    Parameters
+    ----------
+    meal_date_format: date
+    
+    meal_time_format: str
+    
+    meal_location: str
+    - Acceptable strings "Cooper", "Lakeside", "Pathfinder"
+    """
     existing_menu = (
         db.query(Menu)
         .filter(
