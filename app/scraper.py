@@ -140,11 +140,11 @@ def scrape_each_dining_hall(idx: int) -> None:
         a_tag.click()
         time.sleep(3)
 
-        # individual_menu_selector = WebDriverWait(driver, 10).until(
-        #     EC.visibility_of_element_located(
-        #         (By.XPATH, "//div[contains(@class, 'table-responsive')]")
-        #     )
-        # )
+        individual_menu_selector = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located(
+                (By.XPATH, "//div[contains(@class, 'table-responsive')]")
+            )
+        )
 
         back_buttons = get_navigation_breadcrumb()
         meal_date_time = back_buttons[2].get_attribute("textContent")
