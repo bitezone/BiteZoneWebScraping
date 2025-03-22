@@ -8,3 +8,5 @@
 *.env
 *.tar
 /compiledFiles/
+/playground/
+/scripts/

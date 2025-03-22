@@ -8,7 +8,6 @@ from .enums import MealLocation
 class Base(DeclarativeBase):
     pass
 
-
 menu_items_assocation = Table(
     "menu_items_association",
     Base.metadata,

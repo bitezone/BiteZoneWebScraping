@@ -1,20 +1,20 @@
 services:
-  web-scraping:
-    container_name: web_scraping_service
-    build: ./
-    ports: 
-      - "7777:5000"
-    depends_on:
-      - db
-    networks:
-      - db
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+  # web-scraping:
+  #   container_name: web_scraping_service
+  #   build: ./
+  #   ports: 
+  #     - "7777:5000"
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     - db
+  #   logging:
+  #     driver: "json-file"
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
   db:
-    container_name: postgres
+    container_name: postgres_bitezone
     image: postgres:latest
     environment:
       POSTGRES_USER: ${POSTGRES_USER}

@@ -14,8 +14,9 @@ from sqlalchemy.orm import Session
 
 from app.web_driver import WebDriverManager
 
-def main():
 
+def main():
+    print(os.environ)
     driver: WebDriver = WebDriverManager.get_driver()
     url = os.getenv("SELECTED_WEBSCRAPE_URL") # Scrapes SUNY Oswego dining hall website
     
