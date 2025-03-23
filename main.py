@@ -13,10 +13,12 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 from sqlalchemy.orm import Session
 
 from app.web_driver import WebDriverManager
-
+from dotenv import load_dotenv
 
 def main():
-    print(os.environ)
+
+    # Load environment variables from .env file
+    load_dotenv() 
     driver: WebDriver = WebDriverManager.get_driver()
     url = os.getenv("SELECTED_WEBSCRAPE_URL") # Scrapes SUNY Oswego dining hall website
     

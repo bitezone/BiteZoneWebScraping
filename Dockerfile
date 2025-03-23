@@ -11,9 +11,6 @@ RUN apk update && apk add --no-cache \
     
 RUN pip install --no-cache-dir --trusted-host pypi.python.org -r requirements.txt
 
-ENV CHROME_PATH="/usr/bin/chromium"
-ENV CHROMEDRIVER_PATH="/usr/bin/chromedriver"
-ENV ENV="deployment"
 
 # Run the application
 CMD ["python", "main.py"]

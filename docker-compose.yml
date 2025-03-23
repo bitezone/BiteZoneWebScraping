@@ -2,10 +2,12 @@ services:
   # web-scraping:
   #   container_name: web_scraping_service
   #   build: ./
+  #   env_file:
+  #     - .env
   #   ports: 
   #     - "7777:5000"
   #   depends_on:
-  #     - db
+  #     - dbm
   #   networks:
   #     - db
   #   logging:

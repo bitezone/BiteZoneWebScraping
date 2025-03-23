@@ -13,6 +13,7 @@ __all__ = ["add_or_update_menu", "create_menu_item_db", "connect_menu_and_menu_i
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL, echo=True)
+print("Database URL: ", DATABASE_URL)
 Base.metadata.create_all(bind=engine)
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False)
