@@ -133,7 +133,11 @@ def scrape_each_dining_hall(idx: int) -> None:
         )
 
         individual_menu_link = individual_menu_links[i]
-
+        
+        # Getting meal date ahead to store in the database
+        meal_date_raw = individual_menu_link.find_element(By.XPATH, "./parent::*/parent::*/header").get_attribute("textContent").split(", ")[1]
+        meal_date_format = convert_to_date(meal_date_raw)
+        
         a_tag = WebDriverWait(individual_menu_link, 10).until(
             EC.visibility_of_element_located((By.XPATH, "./a"))
         )
@@ -147,11 +151,10 @@ def scrape_each_dining_hall(idx: int) -> None:
         )
 
         back_buttons = get_navigation_breadcrumb()
-        meal_date_time = back_buttons[2].get_attribute("textContent")
+        meal_date_time_bread_crumb = back_buttons[2].get_attribute("textContent")
         meal_location = back_buttons[1].get_attribute("textContent").split(" ")[0]
-        meal_date_raw = meal_date_time.split(",")[0]
-        meal_time_format = meal_date_time.split(", ")[1]
-        meal_date_format = convert_to_date(meal_date_raw)
+        meal_time_format = meal_date_time_bread_crumb.split(", ")[1]
+        
 
         # db function to modify the menu if new or updated menu is detected
         menu = add_or_update_menu(
