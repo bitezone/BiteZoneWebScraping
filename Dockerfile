@@ -1,8 +1,8 @@
 FROM python:3.10-alpine
 
-WORKDIR /app
+WORKDIR /main
 
-COPY . /app
+COPY . /main
 
 RUN apk update && apk add --no-cache \
     chromium \
