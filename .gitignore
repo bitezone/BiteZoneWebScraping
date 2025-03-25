@@ -1,6 +1,10 @@
 .env
 *.tar
-*.sh
+
+
+DeveloperREADME.md
 
 /scripts/
 /playground/
+/compiledFiles/
+/temp/

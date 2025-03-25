@@ -10,3 +10,7 @@
 /compiledFiles/
 /playground/
 /scripts/
+.gitignore
+/helper_scripts/
+/temp/
+

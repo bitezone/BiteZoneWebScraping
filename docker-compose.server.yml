@@ -1,14 +1,10 @@
 services:
   web-scraping:
     container_name: web_scraping_service
-    image: bitezone/web-scraping
-    build: ./
-    environment:
-      ENV: deployment
-    env_file:
-      - .env
+    image: bitezone/web-scraping 
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - db_network
     logging:
@@ -18,12 +14,7 @@ services:
         max-file: "3"
   db:
     container_name: postgres_bitezone
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      PGDATA: /var/lib/postgresql/data
+    image: bitezone/database
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
@@ -36,7 +27,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-  
 
 networks:
   db_network:
