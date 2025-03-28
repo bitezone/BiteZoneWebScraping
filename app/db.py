@@ -12,7 +12,7 @@ from .enums import MealLocation
 __all__ = ["add_or_update_menu", "create_menu_item_db", "connect_menu_and_menu_items"]
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(DATABASE_URL)
 print("Database URL: ", DATABASE_URL)
 Base.metadata.create_all(bind=engine)
 
