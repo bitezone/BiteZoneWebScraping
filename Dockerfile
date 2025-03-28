@@ -13,6 +13,6 @@ RUN pip install --no-cache-dir --trusted-host pypi.python.org -r requirements.tx
 
 
 # Run the application
-CMD ["python", "main.py"]
+CMD ["python", "-u", "main.py"]
 
 
