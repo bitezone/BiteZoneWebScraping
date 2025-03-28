@@ -80,7 +80,6 @@ def create_menu_item_db(category_text: str, menu_item_text: str) -> MenuItem:
 
 def connect_menu_and_menu_items(menu: Menu, menu_items: List[MenuItem]):
     to_add_menu_items = []
-    print(menu)
     for menu_item in menu_items:
         if menu_item not in menu.menu_items:
             to_add_menu_items.append(menu_item)
