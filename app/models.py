@@ -8,11 +8,13 @@ from .enums import MealLocation
 class Base(DeclarativeBase):
     pass
 
+
 menu_items_assocation = Table(
     "menu_items_association",
     Base.metadata,
-    Column("menu_id", Integer, ForeignKey("menus.id"), primary_key=True),
-    Column("menu_item_id", Integer, ForeignKey("menu_items.id"), primary_key=True),
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("menu_id", Integer, ForeignKey("menus.id")),
+    Column("menu_item_id", Integer, ForeignKey("menu_items.id")),
 )
 
 
