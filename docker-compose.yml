@@ -18,7 +18,7 @@ services:
         max-file: "3"
   db:
     container_name: postgres_bitezone
-    image: postgres:latest
+    image: postgres:17.4-bullseye
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -36,7 +36,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-  
 
 networks:
   db_network:
