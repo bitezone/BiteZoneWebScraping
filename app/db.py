@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session, Session
 from .models import Base, Menu, MenuItem
 from .enums import MealLocation
-
+from .dataclasses import MenuItemData
 
 # Exposed functions and variables
 __all__ = ["add_or_update_menu", "create_menu_item_db", "connect_menu_and_menu_items"]
@@ -61,20 +61,47 @@ def add_or_update_menu(
         return existing_menu
 
 
-def create_menu_item_db(category_text: str, menu_item_text: str) -> MenuItem:
+def create_menu_item_db(menu_item_obj: MenuItemData) -> MenuItem:
 
     existing_menu_item = (
         db.query(MenuItem)
-        .filter(MenuItem.category == category_text, MenuItem.name == menu_item_text)
+        .filter(
+            MenuItem.category == menu_item_obj.category,
+            MenuItem.name == menu_item_obj.name,
+        )
         .first()
     )
 
     if not existing_menu_item:
-        menu_item = MenuItem(name=menu_item_text, category=category_text)
+        menu_item = MenuItem(
+            name=menu_item_obj.name,
+            category=menu_item_obj.category,
+            serving_size=menu_item_obj.serving_size,
+            calories_per_serving=menu_item_obj.calories_per_serving,
+        )
         db.add(menu_item)
         db.commit()
         return menu_item
     else:
+        updated = False
+
+        if existing_menu_item.serving_size != menu_item_obj.serving_size:
+            existing_menu_item.serving_size = menu_item_obj.serving_size
+            updated = True
+
+        if (
+            existing_menu_item.calories_per_serving
+            != menu_item_obj.calories_per_serving
+        ):
+            existing_menu_item.calories_per_serving = menu_item_obj.calories_per_serving
+            updated = True
+
+        menu_item = existing_menu_item
+
+        if updated:
+            db.add(menu_item)
+            db.commit()
+
         return existing_menu_item
 
 
@@ -83,6 +110,6 @@ def connect_menu_and_menu_items(menu: Menu, menu_items: List[MenuItem]):
     for menu_item in menu_items:
         if menu_item not in menu.menu_items:
             to_add_menu_items.append(menu_item)
-            
+
     menu.menu_items.extend(to_add_menu_items)
     db.commit()

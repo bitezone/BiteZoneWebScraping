@@ -13,9 +13,9 @@ from .models import Menu, MenuItem
 from .utils import convert_to_date
 from .db import *
 
-
 from .web_driver import WebDriverManager
 
+from .dataclasses import MenuItemData
 
 def click_for_popup_acknowledgement():
     """click to close pop up acknowledgement button if existed"""
@@ -146,7 +146,7 @@ def scrape_each_dining_hall(idx: int) -> None:
         a_tag = WebDriverWait(individual_menu_link, 10).until(
             EC.visibility_of_element_located((By.XPATH, "./a"))
         )
-        a_tag.click()
+        ActionChains(driver).click(a_tag).perform()
         time.sleep(3)
 
         individual_menu_selector = WebDriverWait(driver, 10).until(
@@ -202,11 +202,18 @@ def get_menu_data_from_selected_page(individual_menu_selector: WebElement, menu:
             menu_item_selector = raw_item_selector.find_element(
                 By.XPATH, ".//a[@class='cbo_nn_itemHover']"
             )
+            
+            menu_item_object = MenuItemData()
 
-            get_nutritional_information(menu_item_selector)
+            menu_item_object = get_nutritional_information(menu_item_selector, menu_item_object)
 
             menu_item_text = menu_item_selector.get_attribute("innerHTML").split("<")[0]
-            menu_item = create_menu_item_db(category_text, menu_item_text)
+            
+            menu_item_object.category = category_text
+            menu_item_object.name = menu_item_text
+            menu_item = create_menu_item_db(menu_item_object)
+
+            
             menu_items_li.append(menu_item)
     connect_menu_and_menu_items(menu, menu_items_li)
 
@@ -218,19 +225,58 @@ def open_all_menu_category_toggle():
     for category_selector in category_selectors:
         ActionChains(driver).click(category_selector).perform()
 
-    time.sleep(5)
 
 
-def get_nutritional_information(menu_item_selector: WebElement):
+def get_nutritional_information(menu_item_selector: WebElement, menu_item_obj: MenuItemData) -> MenuItemData:
     driver: WebDriver = WebDriverManager.get_driver()
 
-    menu_item_selector.click()
+    try:
+        ActionChains(driver).click(menu_item_selector).perform()
+    except Exception as e:
+        print(menu_item_selector.get_attribute("outerHTML"))
+        print("Failed to print :", e)
+        return
 
+    menu_item_obj.serving_size=get_serving_size()
+    menu_item_obj.calories_per_serving=get_calorie()
+    
     try:
         close_button_nutrition_info = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "btn_nn_nutrition_close"))
         )
-        time.sleep(1)
-        close_button_nutrition_info.click()
+        ActionChains(driver).click(close_button_nutrition_info).perform()
     except Exception as e:
         print("Failed to find or click close button:", e)
+        
+    return menu_item_obj
+
+
+def get_serving_size() -> int:
+    driver: WebDriver = WebDriverManager.get_driver()
+
+    serving_size_element : WebElement = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located(
+            (By.XPATH, ".//td[@class='cbo_nn_LabelBottomBorderLabel']")
+        )
+    )
+    
+    serving_size_text = serving_size_element.get_attribute("innerText")
+    
+    
+    
+    return serving_size_text[14:]
+
+def get_calorie():
+    driver: WebDriver = WebDriverManager.get_driver()
+
+    calorie_element : WebElement = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located(
+            (By.XPATH, ".//td[@class='cbo_nn_LabelDetail']//span[@class='cbo_nn_SecondaryNutrient']")
+        )
+    )
+    
+    calorie_text = calorie_element.get_attribute("innerText")
+    
+    return int(calorie_text)
+
+    
