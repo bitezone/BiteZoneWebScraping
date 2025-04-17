@@ -83,6 +83,6 @@ def connect_menu_and_menu_items(menu: Menu, menu_items: List[MenuItem]):
     for menu_item in menu_items:
         if menu_item not in menu.menu_items:
             to_add_menu_items.append(menu_item)
-
+            
     menu.menu_items.extend(to_add_menu_items)
     db.commit()

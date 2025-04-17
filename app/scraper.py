@@ -2,6 +2,7 @@ import time
 from typing import List
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -133,11 +134,15 @@ def scrape_each_dining_hall(idx: int) -> None:
         )
 
         individual_menu_link = individual_menu_links[i]
-        
+
         # Getting meal date ahead to store in the database
-        meal_date_raw = individual_menu_link.find_element(By.XPATH, "./parent::*/parent::*/header").get_attribute("textContent").split(", ")[1]
+        meal_date_raw = (
+            individual_menu_link.find_element(By.XPATH, "./parent::*/parent::*/header")
+            .get_attribute("textContent")
+            .split(", ")[1]
+        )
         meal_date_format = convert_to_date(meal_date_raw)
-        
+
         a_tag = WebDriverWait(individual_menu_link, 10).until(
             EC.visibility_of_element_located((By.XPATH, "./a"))
         )
@@ -154,7 +159,6 @@ def scrape_each_dining_hall(idx: int) -> None:
         meal_date_time_bread_crumb = back_buttons[2].get_attribute("textContent")
         meal_location = back_buttons[1].get_attribute("textContent").split(" ")[0]
         meal_time_format = meal_date_time_bread_crumb.split(", ")[1]
-        
 
         # db function to modify the menu if new or updated menu is detected
         menu = add_or_update_menu(
@@ -177,18 +181,18 @@ def get_menu_data_from_selected_page(individual_menu_selector: WebElement, menu:
     ----------
     individual_menu_selector: WebElement
     """
+    open_all_menu_category_toggle()
 
     menu_items_and_categories = individual_menu_selector.find_elements(
         By.XPATH, ".//tbody//tr"
     )
-    
-    
+
     menu_items_li: List[MenuItem] = []
     category_text: str | None = None
-    
+
     for raw_item_selector in menu_items_and_categories:
         isCategory = True if raw_item_selector.get_attribute("role") else False
-        
+
         if isCategory:
             category_selector = raw_item_selector.find_element(
                 By.XPATH, ".//div[@role='button']"
@@ -198,7 +202,35 @@ def get_menu_data_from_selected_page(individual_menu_selector: WebElement, menu:
             menu_item_selector = raw_item_selector.find_element(
                 By.XPATH, ".//a[@class='cbo_nn_itemHover']"
             )
+
+            get_nutritional_information(menu_item_selector)
+
             menu_item_text = menu_item_selector.get_attribute("innerHTML").split("<")[0]
             menu_item = create_menu_item_db(category_text, menu_item_text)
             menu_items_li.append(menu_item)
     connect_menu_and_menu_items(menu, menu_items_li)
+
+
+def open_all_menu_category_toggle():
+    driver: WebDriver = WebDriverManager.get_driver()
+    category_selectors = driver.find_elements(By.XPATH, ".//div[@role='button']")
+
+    for category_selector in category_selectors:
+        ActionChains(driver).click(category_selector).perform()
+
+    time.sleep(5)
+
+
+def get_nutritional_information(menu_item_selector: WebElement):
+    driver: WebDriver = WebDriverManager.get_driver()
+
+    menu_item_selector.click()
+
+    try:
+        close_button_nutrition_info = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "btn_nn_nutrition_close"))
+        )
+        time.sleep(1)
+        close_button_nutrition_info.click()
+    except Exception as e:
+        print("Failed to find or click close button:", e)
