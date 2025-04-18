@@ -8,14 +8,16 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+from .db import convert_to_ingredient_objects
 from .models import Menu, MenuItem
 
-from .utils import convert_to_date
+from .utils import convert_to_date, split_ingredients
 from .db import *
 
 from .web_driver import WebDriverManager
 
 from .dataclasses import MenuItemData
+
 
 def click_for_popup_acknowledgement():
     """click to close pop up acknowledgement button if existed"""
@@ -147,7 +149,7 @@ def scrape_each_dining_hall(idx: int) -> None:
             EC.visibility_of_element_located((By.XPATH, "./a"))
         )
         ActionChains(driver).click(a_tag).perform()
-        time.sleep(3)
+        # time.sleep(3)
 
         individual_menu_selector = WebDriverWait(driver, 10).until(
             EC.visibility_of_element_located(
@@ -202,18 +204,24 @@ def get_menu_data_from_selected_page(individual_menu_selector: WebElement, menu:
             menu_item_selector = raw_item_selector.find_element(
                 By.XPATH, ".//a[@class='cbo_nn_itemHover']"
             )
-            
+
             menu_item_object = MenuItemData()
 
-            menu_item_object = get_nutritional_information(menu_item_selector, menu_item_object)
+            menu_item_object = get_nutritional_information(
+                menu_item_selector, menu_item_object
+            )
 
             menu_item_text = menu_item_selector.get_attribute("innerHTML").split("<")[0]
-            
+
             menu_item_object.category = category_text
             menu_item_object.name = menu_item_text
-            menu_item = create_menu_item_db(menu_item_object)
-
             
+            menu_item_object.ingredients = convert_to_ingredient_objects(get_ingredients()) 
+            menu_item = create_menu_item_db(menu_item_object)
+            
+            print(menu_item.ingredients)
+            
+
             menu_items_li.append(menu_item)
     connect_menu_and_menu_items(menu, menu_items_li)
 
@@ -226,8 +234,9 @@ def open_all_menu_category_toggle():
         ActionChains(driver).click(category_selector).perform()
 
 
-
-def get_nutritional_information(menu_item_selector: WebElement, menu_item_obj: MenuItemData) -> MenuItemData:
+def get_nutritional_information(
+    menu_item_selector: WebElement, menu_item_obj: MenuItemData
+) -> MenuItemData:
     driver: WebDriver = WebDriverManager.get_driver()
 
     try:
@@ -237,9 +246,9 @@ def get_nutritional_information(menu_item_selector: WebElement, menu_item_obj: M
         print("Failed to print :", e)
         return
 
-    menu_item_obj.serving_size=get_serving_size()
-    menu_item_obj.calories_per_serving=get_calorie()
-    
+    menu_item_obj.serving_size = get_serving_size()
+    menu_item_obj.calories_per_serving = get_calorie()
+
     try:
         close_button_nutrition_info = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "btn_nn_nutrition_close"))
@@ -247,36 +256,68 @@ def get_nutritional_information(menu_item_selector: WebElement, menu_item_obj: M
         ActionChains(driver).click(close_button_nutrition_info).perform()
     except Exception as e:
         print("Failed to find or click close button:", e)
-        
+
     return menu_item_obj
 
 
 def get_serving_size() -> int:
     driver: WebDriver = WebDriverManager.get_driver()
 
-    serving_size_element : WebElement = WebDriverWait(driver, 10).until(
+    serving_size_element: WebElement = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located(
             (By.XPATH, ".//td[@class='cbo_nn_LabelBottomBorderLabel']")
         )
     )
-    
+
     serving_size_text = serving_size_element.get_attribute("innerText")
-    
-    
-    
+
     return serving_size_text[14:]
+
 
 def get_calorie():
     driver: WebDriver = WebDriverManager.get_driver()
 
-    calorie_element : WebElement = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located(
-            (By.XPATH, ".//td[@class='cbo_nn_LabelDetail']//span[@class='cbo_nn_SecondaryNutrient']")
+    try:
+        calorie_element: WebElement = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (
+                    By.XPATH,
+                    ".//td[@class='cbo_nn_LabelDetail']//span[@class='cbo_nn_SecondaryNutrient']",
+                )
+            )
         )
-    )
-    
-    calorie_text = calorie_element.get_attribute("innerText")
+        calorie_text = calorie_element.get_attribute("innerText")
+    except Exception as e:
+        print("Error in getting the calorie")
+        print(e)
+        return -1
+
     
     return int(calorie_text)
 
+
+def get_ingredients() -> List[str]:
+    """scraping ingredients from nutritional block
+    """
+    driver: WebDriver = WebDriverManager.get_driver()
+    try:     
+        ingredients_raw_element: WebElement = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located(
+                (
+                    By.XPATH,
+                    ".//span[@class='cbo_nn_LabelIngredients']",
+                )
+            )
+        )
+    except Exception as e:
+        return []
+        
+    
+    ingredients_raw = ingredients_raw_element.get_attribute("innerText")
+    ingredients_li = split_ingredients(ingredients_raw)
+    print(ingredients_li)
+    
+    return ingredients_li 
+    
+    
     

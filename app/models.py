@@ -17,19 +17,20 @@ menu_items_assocation = Table(
     Column("menu_item_id", Integer, ForeignKey("menu_items.id")),
 )
 
-menu_items_allergies_association = Table(
-    "menu_items_allergies_association",
-    Base.metadata,
-    Column("menu_item_id", ForeignKey("menu_items.id")),
-    Column("allergy_id", ForeignKey("allergies.id"))
-)
-
-# menu_items_ingredients_association = Table(
-#     "menu_items_ingredients_association",
+# menu_items_allergies_association = Table(
+#     "menu_items_allergies_association",
 #     Base.metadata,
 #     Column("menu_item_id", ForeignKey("menu_items.id")),
-#     Column("ingredient_id", ForeignKey("ingredients.id"))
+#     Column("allergy_id", ForeignKey("allergies.id"))
 # )
+
+menu_items_ingredients_association = Table(
+    "menu_items_ingredients_association",
+    Base.metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("menu_item_id", ForeignKey("menu_items.id")),
+    Column("ingredient_id", ForeignKey("ingredients.id"))
+)
 
 class Menu(Base):
     __tablename__ = "menus"
@@ -61,6 +62,10 @@ class MenuItem(Base):
         secondary=menu_items_assocation, back_populates="menu_items"
     )
     
+    ingredients: Mapped[List["Ingredient"]] = relationship(
+        secondary=menu_items_ingredients_association, back_populates="menu_items"
+    )
+    
     # allergies: Mapped[List["Allergies"]] = relationship(
     #     secondary=menu_items_allergies_association, back_populates="menu_items"
     # )
@@ -79,11 +84,13 @@ class MenuItem(Base):
 #         secondary=menu_items_allergies_association, back_populates="allergies"
 #     )
     
-# class Ingredient(Base):
-#     __tablename__ = "ingredients"
+class Ingredient(Base):
+    __tablename__ = "ingredients"
     
-#     id = Column(Integer, primary_key=True)
-#     ingredient = Column(String, nullable=False)
-    
+    id = Column(Integer, primary_key=True)
+    ingredient = Column(String, nullable=False)
+    menu_items: Mapped[List["MenuItem"]] = relationship(
+        secondary=menu_items_ingredients_association, back_populates="ingredients"
+    )    
     
     
