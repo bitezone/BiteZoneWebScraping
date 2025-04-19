@@ -40,3 +40,12 @@ def split_ingredients(raw: str) -> list[str]:
 
     ingredients = [re.sub(r'\s+', ' ', ing.replace('\xa0', ' ')).strip() for ing in ingredients]
     return ingredients
+
+def split_allergies(raw: str) -> list[str]:
+    # Replace HTML non-breaking space with actual space
+    cleaned = raw.replace("&nbsp;", " ")
+    # Split on ', ' (comma and space)
+    parts = cleaned.split(", ")
+    print(parts)
+    # Normalize whitespace
+    return [re.sub(r'\s+', ' ', part).strip() for part in parts if part.strip()]

@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List
-from .db import Ingredient
+from .models import Ingredient, Allergy
+
 
 @dataclass
 class MenuItemData:
@@ -9,3 +10,4 @@ class MenuItemData:
     serving_size: str = ""
     calories_per_serving: int = -1
     ingredients: List[Ingredient] = field(default_factory=list)
+    allergies: List[Allergy] = field(default_factory=list)

@@ -17,12 +17,12 @@ menu_items_assocation = Table(
     Column("menu_item_id", Integer, ForeignKey("menu_items.id")),
 )
 
-# menu_items_allergies_association = Table(
-#     "menu_items_allergies_association",
-#     Base.metadata,
-#     Column("menu_item_id", ForeignKey("menu_items.id")),
-#     Column("allergy_id", ForeignKey("allergies.id"))
-# )
+menu_items_allergies_association = Table(
+    "menu_items_allergies_association",
+    Base.metadata,
+    Column("menu_item_id", ForeignKey("menu_items.id")),
+    Column("allergy_id", ForeignKey("allergies.id"))
+)
 
 menu_items_ingredients_association = Table(
     "menu_items_ingredients_association",
@@ -66,23 +66,23 @@ class MenuItem(Base):
         secondary=menu_items_ingredients_association, back_populates="menu_items"
     )
     
-    # allergies: Mapped[List["Allergies"]] = relationship(
-    #     secondary=menu_items_allergies_association, back_populates="menu_items"
-    # )
+    allergies: Mapped[List["Allergy"]] = relationship(
+        secondary=menu_items_allergies_association, back_populates="menu_items"
+    )
 
     def __repr__(self):
         return f"MenuItem(id={self.id}, name={self.name}, category={self.category}), serving_size={self.serving_size}, calories={self.calories_per_serving}"
     
     
-# class Allergies(Base):
-#     __tablename__ = "allergies"
+class Allergy(Base):
+    __tablename__ = "allergies"
     
-#     id = Column(Integer, primary_key=True)
-#     allergy_type = Column(String, nullable=False)
+    id = Column(Integer, primary_key=True)
+    allergy_type = Column(String, nullable=False)
     
-#     menu_items: Mapped[List["MenuItem"]] = relationship(
-#         secondary=menu_items_allergies_association, back_populates="allergies"
-#     )
+    menu_items: Mapped[List["MenuItem"]] = relationship(
+        secondary=menu_items_allergies_association, back_populates="allergies"
+    )
     
 class Ingredient(Base):
     __tablename__ = "ingredients"

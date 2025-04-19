@@ -4,7 +4,7 @@ import os
 from typing import Generator, List
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session, Session
-from .models import Base, Menu, MenuItem, Ingredient
+from .models import Base, Menu, MenuItem, Ingredient, Allergy
 from .enums import MealLocation
 from .dataclasses import MenuItemData
 
@@ -79,6 +79,7 @@ def create_menu_item_db(menu_item_obj: MenuItemData) -> MenuItem:
             serving_size=menu_item_obj.serving_size,
             calories_per_serving=menu_item_obj.calories_per_serving,
             ingredients=menu_item_obj.ingredients,
+            allergies=menu_item_obj.allergies
         )
         db.add(menu_item)
         db.commit()
@@ -105,6 +106,15 @@ def create_menu_item_db(menu_item_obj: MenuItemData) -> MenuItem:
 
         if existing_ings != new_ings:
             existing_menu_item.ingredients = menu_item_obj.ingredients
+            updated = True
+            
+            
+        # Check if a change is detected  
+        existing_allergies = {alg.allergy_type for alg in existing_menu_item.allergies}
+        new_allergies = {alg.allergy_type for alg  in menu_item_obj.allergies}
+
+        if existing_allergies != new_allergies:
+            existing_menu_item.allergies = menu_item_obj.allergies
             updated = True
 
         menu_item = existing_menu_item
@@ -140,3 +150,19 @@ def convert_to_ingredient_objects(ingredients: List[str]) -> List[Ingredient]:
             converted_ingredients.append(new_ing)
     db.commit()
     return converted_ingredients
+
+
+def convert_to_allergy_objects(allergies: List[str]) -> List[Allergy]:
+    converted_allergies: List[Allergy] = []
+    existing = db.query(Allergy).filter(Allergy.allergy_type.in_(allergies)).all()
+    existing_map = {i.allergy_type: i for i in existing}
+
+    for al in allergies:
+        if al in existing_map:
+            converted_allergies.append(existing_map[al])
+        else:
+            new_allergy = Allergy(allergy_type=al)
+            db.add(new_allergy)
+            converted_allergies.append(new_allergy)
+    db.commit()
+    return converted_allergies

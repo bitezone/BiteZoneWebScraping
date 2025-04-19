@@ -8,10 +8,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from .db import convert_to_ingredient_objects
+from .db import convert_to_allergy_objects, convert_to_ingredient_objects
 from .models import Menu, MenuItem
 
-from .utils import convert_to_date, split_ingredients
+from .utils import convert_to_date, split_ingredients, split_allergies
 from .db import *
 
 from .web_driver import WebDriverManager
@@ -183,6 +183,7 @@ def get_menu_data_from_selected_page(individual_menu_selector: WebElement, menu:
     ----------
     individual_menu_selector: WebElement
     """
+    driver: WebDriver = WebDriverManager.get_driver()
     open_all_menu_category_toggle()
 
     menu_items_and_categories = individual_menu_selector.find_elements(
@@ -196,6 +197,9 @@ def get_menu_data_from_selected_page(individual_menu_selector: WebElement, menu:
         isCategory = True if raw_item_selector.get_attribute("role") else False
 
         if isCategory:
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, ".//div[@role='button']"))
+            )
             category_selector = raw_item_selector.find_element(
                 By.XPATH, ".//div[@role='button']"
             )
@@ -215,12 +219,8 @@ def get_menu_data_from_selected_page(individual_menu_selector: WebElement, menu:
 
             menu_item_object.category = category_text
             menu_item_object.name = menu_item_text
-            
-            menu_item_object.ingredients = convert_to_ingredient_objects(get_ingredients()) 
+
             menu_item = create_menu_item_db(menu_item_object)
-            
-            print(menu_item.ingredients)
-            
 
             menu_items_li.append(menu_item)
     connect_menu_and_menu_items(menu, menu_items_li)
@@ -248,6 +248,9 @@ def get_nutritional_information(
 
     menu_item_obj.serving_size = get_serving_size()
     menu_item_obj.calories_per_serving = get_calorie()
+
+    menu_item_obj.ingredients = convert_to_ingredient_objects(get_ingredients())
+    menu_item_obj.allergies = convert_to_allergy_objects(get_allergies())
 
     try:
         close_button_nutrition_info = WebDriverWait(driver, 10).until(
@@ -278,7 +281,7 @@ def get_calorie():
     driver: WebDriver = WebDriverManager.get_driver()
 
     try:
-        calorie_element: WebElement = WebDriverWait(driver, 10).until(
+        calorie_element: WebElement = WebDriverWait(driver, 2).until(
             EC.presence_of_element_located(
                 (
                     By.XPATH,
@@ -292,17 +295,15 @@ def get_calorie():
         print(e)
         return -1
 
-    
     return int(calorie_text)
 
 
 def get_ingredients() -> List[str]:
-    """scraping ingredients from nutritional block
-    """
+    """scraping ingredients from nutritional block"""
     driver: WebDriver = WebDriverManager.get_driver()
-    try:     
-        ingredients_raw_element: WebElement = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located(
+    try:
+        ingredients_raw_element: WebElement = WebDriverWait(driver, 2).until(
+            EC.visibility_of_element_located(
                 (
                     By.XPATH,
                     ".//span[@class='cbo_nn_LabelIngredients']",
@@ -310,14 +311,31 @@ def get_ingredients() -> List[str]:
             )
         )
     except Exception as e:
+        print("Ingredient is not detected")
         return []
-        
-    
+
     ingredients_raw = ingredients_raw_element.get_attribute("innerText")
     ingredients_li = split_ingredients(ingredients_raw)
-    print(ingredients_li)
-    
-    return ingredients_li 
-    
-    
-    
+
+    return ingredients_li
+
+
+def get_allergies() -> List[str]:
+    driver: WebDriver = WebDriverManager.get_driver()
+    try:
+        allergies_raw_element: WebElement = WebDriverWait(driver, 0).until(
+            EC.visibility_of_element_located(
+                (
+                    By.XPATH,
+                    ".//span[@class='cbo_nn_LabelAllergens']",
+                )
+            )
+        )
+    except Exception as e:
+        print("Allergy is not detected")
+        return []
+
+    allergies_raw = allergies_raw_element.get_attribute("innerHTML")
+    allergies_li = split_allergies(allergies_raw)
+    print(allergies_li)
+    return allergies_li
