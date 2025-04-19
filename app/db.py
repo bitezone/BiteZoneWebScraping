@@ -79,7 +79,7 @@ def create_menu_item_db(menu_item_obj: MenuItemData) -> MenuItem:
             serving_size=menu_item_obj.serving_size,
             calories_per_serving=menu_item_obj.calories_per_serving,
             ingredients=menu_item_obj.ingredients,
-            allergies=menu_item_obj.allergies
+            allergies=menu_item_obj.allergies,
         )
         db.add(menu_item)
         db.commit()
@@ -99,19 +99,18 @@ def create_menu_item_db(menu_item_obj: MenuItemData) -> MenuItem:
         ):
             existing_menu_item.calories_per_serving = menu_item_obj.calories_per_serving
             updated = True
-        
-        # Check if a change is detected  
+
+        # Check if a change is detected
         existing_ings = {ing.ingredient for ing in existing_menu_item.ingredients}
         new_ings = {ing.ingredient for ing in menu_item_obj.ingredients}
 
         if existing_ings != new_ings:
             existing_menu_item.ingredients = menu_item_obj.ingredients
             updated = True
-            
-            
-        # Check if a change is detected  
+
+        # Check if a change is detected
         existing_allergies = {alg.allergy_type for alg in existing_menu_item.allergies}
-        new_allergies = {alg.allergy_type for alg  in menu_item_obj.allergies}
+        new_allergies = {alg.allergy_type for alg in menu_item_obj.allergies}
 
         if existing_allergies != new_allergies:
             existing_menu_item.allergies = menu_item_obj.allergies
@@ -166,3 +165,15 @@ def convert_to_allergy_objects(allergies: List[str]) -> List[Allergy]:
             converted_allergies.append(new_allergy)
     db.commit()
     return converted_allergies
+
+
+def get_menu_item(menu_item_obj: MenuItemData) -> "MenuItem | None":
+    existing_menu_item = (
+        db.query(MenuItem)
+        .filter(
+            MenuItem.name == menu_item_obj.name,
+        )
+        .first()
+    )
+     
+    return existing_menu_item

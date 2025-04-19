@@ -8,7 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from .db import convert_to_allergy_objects, convert_to_ingredient_objects
+from .db import convert_to_allergy_objects, convert_to_ingredient_objects, get_menu_item
 from .models import Menu, MenuItem
 
 from .utils import convert_to_date, split_ingredients, split_allergies
@@ -192,33 +192,39 @@ def get_menu_data_from_selected_page(individual_menu_selector: WebElement, menu:
 
     menu_items_li: List[MenuItem] = []
     category_text: str | None = None
+    
+
+    print("Scraping", menu.date, menu.meal_location, menu.meal_time)
 
     for raw_item_selector in menu_items_and_categories:
-        isCategory = True if raw_item_selector.get_attribute("role") else False
+        isCategory = True if raw_item_selector.get_attribute("role") == "treegrid" else False
 
         if isCategory:
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, ".//div[@role='button']"))
             )
+            
             category_selector = raw_item_selector.find_element(
                 By.XPATH, ".//div[@role='button']"
             )
             category_text = category_selector.get_attribute("innerHTML").split("<")[0]
         else:
+            
             menu_item_selector = raw_item_selector.find_element(
                 By.XPATH, ".//a[@class='cbo_nn_itemHover']"
             )
 
             menu_item_object = MenuItemData()
 
+            menu_item_text = menu_item_selector.get_attribute("innerHTML").split("<")[0]
+     
+            menu_item_object.category = category_text
+            menu_item_object.name = menu_item_text
+            
+            
             menu_item_object = get_nutritional_information(
                 menu_item_selector, menu_item_object
             )
-
-            menu_item_text = menu_item_selector.get_attribute("innerHTML").split("<")[0]
-
-            menu_item_object.category = category_text
-            menu_item_object.name = menu_item_text
 
             menu_item = create_menu_item_db(menu_item_object)
 
@@ -231,13 +237,27 @@ def open_all_menu_category_toggle():
     category_selectors = driver.find_elements(By.XPATH, ".//div[@role='button']")
 
     for category_selector in category_selectors:
-        ActionChains(driver).click(category_selector).perform()
+        is_open = category_selector.find_element(By.XPATH, ".//../..").get_attribute("aria-expanded")
+
+        if is_open == "false":
+            ActionChains(driver).click(category_selector).perform()
 
 
 def get_nutritional_information(
     menu_item_selector: WebElement, menu_item_obj: MenuItemData
 ) -> MenuItemData:
     driver: WebDriver = WebDriverManager.get_driver()
+    
+    existing_menu_item = get_menu_item(menu_item_obj)
+        
+    if existing_menu_item:
+        menu_item_obj.serving_size =  existing_menu_item.serving_size
+        menu_item_obj.calories_per_serving =  existing_menu_item.calories_per_serving
+
+        menu_item_obj.ingredients = existing_menu_item.ingredients
+        menu_item_obj.allergies =  existing_menu_item.allergies
+        return menu_item_obj
+
 
     try:
         ActionChains(driver).click(menu_item_selector).perform()
@@ -311,7 +331,6 @@ def get_ingredients() -> List[str]:
             )
         )
     except Exception as e:
-        print("Ingredient is not detected")
         return []
 
     ingredients_raw = ingredients_raw_element.get_attribute("innerText")
@@ -332,10 +351,9 @@ def get_allergies() -> List[str]:
             )
         )
     except Exception as e:
-        print("Allergy is not detected")
         return []
 
     allergies_raw = allergies_raw_element.get_attribute("innerHTML")
     allergies_li = split_allergies(allergies_raw)
-    print(allergies_li)
+
     return allergies_li
