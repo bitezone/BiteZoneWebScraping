@@ -1,0 +1,36 @@
+services:
+  web-scraping:
+    container_name: web_scraping_service
+    image: bitezone/web-scraping 
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - db_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+  db:
+    container_name: postgres_bitezone
+    image: bitezone/database
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "7778:5432"
+    networks:
+      - db_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  db_network:
+    driver: bridge
+
+volumes:
+  db_data:

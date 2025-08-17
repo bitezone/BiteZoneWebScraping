@@ -1,0 +1,16 @@
+.git/
+.idea/
+.venv/
+.DS_Store
+*.log
+*.md
+*.sh
+*.env
+*.tar
+/compiledFiles/
+/playground/
+/scripts/
+.gitignore
+/helper_scripts/
+/temp/
+
