@@ -22,33 +22,49 @@ def main():
     # Load environment variables from .env file
     load_dotenv() 
     
-    while True:
+    
+    driver: WebDriver = WebDriverManager.get_driver()
+    url = os.getenv("SELECTED_WEBSCRAPE_URL") # Scrapes SUNY Oswego dining hall website
 
-        try: 
-            driver: WebDriver = WebDriverManager.get_driver()
-            url = os.getenv("SELECTED_WEBSCRAPE_URL") # Scrapes SUNY Oswego dining hall website
+    driver.get(url)
+    driver.set_window_size(1920, 1080)
+    print("-----")
+    print("Web scraping starting")
+    print("Program Iteration Number ", program_iteration_number)
+    print("-----")
+    app.click_for_popup_acknowledgement()
+    for i in range(1, 4):
+        print("Scraping " + str(i) + "th dining hall")
+        app.scrape_each_dining_hall(i)
+    atexit.register(WebDriverManager.quit_driver)
+    
+    # while True:
+
+    #     try: 
+    #         driver: WebDriver = WebDriverManager.get_driver()
+    #         url = os.getenv("SELECTED_WEBSCRAPE_URL") # Scrapes SUNY Oswego dining hall website
+    #         print(url, type(url)) 
+    #         driver.get(url)
+    #         driver.set_window_size(1920, 1080)
+    #         print("-----")
+    #         print("Web scraping starting")
+    #         print("Program Iteration Number ", program_iteration_number)
+    #         print("-----")
+    #         app.click_for_popup_acknowledgement()
+    #         for i in range(1, 4):
+    #             print("Scraping " + str(i) + "th dining hall")
+    #             app.scrape_each_dining_hall(i)
+    #         atexit.register(WebDriverManager.quit_driver)
+    #         print("Sleeping for 3 hours...")
+    #         time.sleep(10800) 
+    #     except Exception as e:
+    #         print("!!!---")
+    #         print(f"Error occurred: {e}")
+    #         print("!!!---")
+    #         print("Retrying in 1 hours...")
+    #         time.sleep(3600)
             
-            driver.get(url)
-            driver.set_window_size(1920, 1080)
-            print("-----")
-            print("Web scraping starting")
-            print("Program Iteration Number ", program_iteration_number)
-            print("-----")
-            app.click_for_popup_acknowledgement()
-            for i in range(1, 4):
-                print("Scraping " + str(i) + "th dining hall")
-                app.scrape_each_dining_hall(i)
-            atexit.register(WebDriverManager.quit_driver)
-            print("Sleeping for 1 hour...")
-            time.sleep(3600) 
-        except Exception as e:
-            print("!!!---")
-            print(f"Error occurred: {e}")
-            print("!!!---")
-            print("Retrying in 1 hour...")
-            time.sleep(3600)
-            
-        program_iteration_number += 1
+    #     program_iteration_number += 1
 
 
 if __name__ == "__main__":

@@ -1,10 +1,14 @@
 .env
 *.tar
 
+logs.md
+
 
 DeveloperREADME.md
 
 /scripts/
 /playground/
 /compiledFiles/
-/temp/
+/temp/.env
+__pycache__/
+*.pyc

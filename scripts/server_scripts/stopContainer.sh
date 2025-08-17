@@ -1,0 +1,1 @@
+docker stop dining-web-scraping
