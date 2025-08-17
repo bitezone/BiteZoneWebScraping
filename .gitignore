@@ -9,4 +9,4 @@ DeveloperREADME.md
 /scripts/
 /playground/
 /compiledFiles/
-/temp/
+/temp/.env
