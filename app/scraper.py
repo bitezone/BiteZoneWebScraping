@@ -8,6 +8,7 @@ from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
 
 from .db import convert_to_allergy_objects, convert_to_ingredient_objects, get_menu_item
 from .models import Menu, MenuItem
@@ -290,77 +291,108 @@ def get_nutritional_information(
     return menu_item_obj
 
 
-def get_serving_size() -> int:
+def get_serving_size() -> str | None:
     driver: WebDriver = WebDriverManager.get_driver()
 
-    serving_size_element: WebElement = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located(
-            (By.XPATH, ".//td[@class='cbo_nn_LabelBottomBorderLabel']")
-        )
-    )
+    for _ in range(5):
+        try:
+            serving_size_element: WebElement = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, ".//td[@class='cbo_nn_LabelBottomBorderLabel']")
+                )
+            )
+            serving_size_text = serving_size_element.get_attribute("innerText")
+            return serving_size_text
+        except StaleElementReferenceException:
+            time.sleep(0.3)
+            continue
+        except TimeoutException:
+            return None
+        except Exception as e:
+            print("Exception in getting serving size")
+            traceback.print_exc()
+            return None
 
-    serving_size_text = serving_size_element.get_attribute("innerText")
+    print("Error in getting serving size")
+    return None
 
-    return serving_size_text[14:]
 
 
 def get_calorie():
     driver: WebDriver = WebDriverManager.get_driver()
 
-    try:
-        calorie_element: WebElement = WebDriverWait(driver, 2).until(
-            EC.presence_of_element_located(
-                (
-                    By.XPATH,
-                    ".//td[@class='cbo_nn_LabelDetail']//span[2]",
+    for _ in range(5):
+        try:
+            calorie_element: WebElement = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located(
+                    (
+                        By.XPATH,
+                        ".//td[@class='cbo_nn_LabelDetail']//span[2]",
+                    )
                 )
             )
-        )
-        calorie_text = calorie_element.get_attribute("innerText")
-    except Exception as e:
-        print("Error in getting the calorie")
-        traceback.print_exc()
-        return -1
+            calorie_text = calorie_element.get_attribute("innerText")
+            return int(calorie_text)
+        except StaleElementReferenceException:
+            time.sleep(0.3)
+            continue
+        except TimeoutException:
+            return -1
+        except Exception as e:
+            print("Exception in getting the calorie")
+            traceback.print_exc()
+            return -1
 
-    return int(calorie_text)
+    print("Error in getting the calorie")
+    return -1
 
 
 def get_ingredients() -> List[str]:
-    """scraping ingredients from nutritional block"""
     driver: WebDriver = WebDriverManager.get_driver()
-    try:
-        ingredients_raw_element: WebElement = WebDriverWait(driver, 2).until(
-            EC.visibility_of_element_located(
-                (
-                    By.XPATH,
-                    ".//span[@class='cbo_nn_LabelIngredients']",
-                )
+    xpath = ".//span[@class='cbo_nn_LabelIngredients']"
+
+    for _ in range(5):
+        try:
+            ingredients_raw_element: WebElement = WebDriverWait(driver, 2).until(
+                EC.visibility_of_element_located((By.XPATH, xpath))
             )
-        )
-    except Exception as e:
-        return []
+            ingredients_raw = ingredients_raw_element.get_attribute("innerText")
+            return split_ingredients(ingredients_raw)
+        except StaleElementReferenceException:
+            time.sleep(0.3)
+            continue
+        except TimeoutException:
+            return []
+        except Exception as e:
+            print("Exception in getting the calorie")
+            traceback.print_exc()
+            return []
 
-    ingredients_raw = ingredients_raw_element.get_attribute("innerText")
-    ingredients_li = split_ingredients(ingredients_raw)
-
-    return ingredients_li
+    print("Error in getting the calorie")
+    return []
 
 
 def get_allergies() -> List[str]:
     driver: WebDriver = WebDriverManager.get_driver()
-    try:
-        allergies_raw_element: WebElement = WebDriverWait(driver, 0).until(
-            EC.visibility_of_element_located(
-                (
-                    By.XPATH,
-                    ".//span[@class='cbo_nn_LabelAllergens']",
-                )
+    xpath = ".//span[@class='cbo_nn_LabelAllergens']"
+
+    for _ in range(5):
+        try:
+            allergies_raw_element: WebElement = WebDriverWait(driver, 2).until(
+                EC.visibility_of_element_located((By.XPATH, xpath))
             )
-        )
-    except Exception as e:
-        return []
+            allergies_raw = allergies_raw_element.get_attribute("innerHTML")
+            return split_allergies(allergies_raw)
+        except StaleElementReferenceException:
+            time.sleep(0.3)
+            continue
+        except TimeoutException:
+            return []
+        except Exception as e:
+            print("Exception in getting allergies")
+            traceback.print_exc()
+            return []
 
-    allergies_raw = allergies_raw_element.get_attribute("innerHTML")
-    allergies_li = split_allergies(allergies_raw)
+    print("Error in getting allergies")
+    return []
 
-    return allergies_li
