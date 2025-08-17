@@ -1,4 +1,5 @@
 import time
+import traceback
 from typing import List
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
@@ -192,24 +193,25 @@ def get_menu_data_from_selected_page(individual_menu_selector: WebElement, menu:
 
     menu_items_li: List[MenuItem] = []
     category_text: str | None = None
-    
 
     print("Scraping", menu.date, menu.meal_location, menu.meal_time)
 
     for raw_item_selector in menu_items_and_categories:
-        isCategory = True if raw_item_selector.get_attribute("role") == "treegrid" else False
+        isCategory = (
+            True if raw_item_selector.get_attribute("role") == "treegrid" else False
+        )
 
         if isCategory:
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, ".//div[@role='button']"))
             )
-            
+
             category_selector = raw_item_selector.find_element(
                 By.XPATH, ".//div[@role='button']"
             )
             category_text = category_selector.get_attribute("innerHTML").split("<")[0]
         else:
-            
+
             menu_item_selector = raw_item_selector.find_element(
                 By.XPATH, ".//a[@class='cbo_nn_itemHover']"
             )
@@ -217,11 +219,10 @@ def get_menu_data_from_selected_page(individual_menu_selector: WebElement, menu:
             menu_item_object = MenuItemData()
 
             menu_item_text = menu_item_selector.get_attribute("innerHTML").split("<")[0]
-     
+
             menu_item_object.category = category_text
             menu_item_object.name = menu_item_text
-            
-            
+
             menu_item_object = get_nutritional_information(
                 menu_item_selector, menu_item_object
             )
@@ -237,7 +238,9 @@ def open_all_menu_category_toggle():
     category_selectors = driver.find_elements(By.XPATH, ".//div[@role='button']")
 
     for category_selector in category_selectors:
-        is_open = category_selector.find_element(By.XPATH, ".//../..").get_attribute("aria-expanded")
+        is_open = category_selector.find_element(By.XPATH, ".//../..").get_attribute(
+            "aria-expanded"
+        )
 
         if is_open == "false":
             ActionChains(driver).click(category_selector).perform()
@@ -247,24 +250,27 @@ def get_nutritional_information(
     menu_item_selector: WebElement, menu_item_obj: MenuItemData
 ) -> MenuItemData:
     driver: WebDriver = WebDriverManager.get_driver()
-    
+
     existing_menu_item = get_menu_item(menu_item_obj)
-        
+
     if existing_menu_item:
-        menu_item_obj.serving_size =  existing_menu_item.serving_size
-        menu_item_obj.calories_per_serving =  existing_menu_item.calories_per_serving
+        menu_item_obj.serving_size = existing_menu_item.serving_size
+        menu_item_obj.calories_per_serving = existing_menu_item.calories_per_serving
 
         menu_item_obj.ingredients = existing_menu_item.ingredients
-        menu_item_obj.allergies =  existing_menu_item.allergies
+        menu_item_obj.allergies = existing_menu_item.allergies
         return menu_item_obj
 
-
     try:
-        ActionChains(driver).click(menu_item_selector).perform()
+        # ActionChains(driver).click(menu_item_selector).perform()
+        element = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable(menu_item_selector)
+        )
+        element.click()
     except Exception as e:
         print(menu_item_selector.get_attribute("outerHTML"))
-        print("Failed to print :", e)
-        return
+        print("Failed to perform click action on menu_item_selector")
+        traceback.print_exc()
 
     menu_item_obj.serving_size = get_serving_size()
     menu_item_obj.calories_per_serving = get_calorie()
@@ -278,7 +284,8 @@ def get_nutritional_information(
         )
         ActionChains(driver).click(close_button_nutrition_info).perform()
     except Exception as e:
-        print("Failed to find or click close button:", e)
+        print("Failed to find or click close button:")
+        traceback.print_exc()
 
     return menu_item_obj
 
@@ -312,7 +319,7 @@ def get_calorie():
         calorie_text = calorie_element.get_attribute("innerText")
     except Exception as e:
         print("Error in getting the calorie")
-
+        traceback.print_exc()
         return -1
 
     return int(calorie_text)
