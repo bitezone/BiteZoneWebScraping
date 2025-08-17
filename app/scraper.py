@@ -312,7 +312,7 @@ def get_calorie():
             EC.presence_of_element_located(
                 (
                     By.XPATH,
-                    ".//td[@class='cbo_nn_LabelDetail']//span[@class='cbo_nn_SecondaryNutrient']",
+                    ".//td[@class='cbo_nn_LabelDetail']//span[2]",
                 )
             )
         )
