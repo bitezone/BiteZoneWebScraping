@@ -8,6 +8,7 @@ This main.py is the controller to scrapes the SUNY Oswego dining hall menu websi
 import atexit
 import os
 import time
+import traceback
 import app
 
 from selenium.webdriver.chrome.webdriver import WebDriver
@@ -39,7 +40,8 @@ def main():
             app.scrape_each_dining_hall(i)
         atexit.register(WebDriverManager.quit_driver)
     except Exception as e:
-        print(f"Error occured: : {e}")
+        print("Full Traceback:")
+        traceback.print_exc()
     finally:
         WebDriverManager.quit_driver()
         print("Scraping finished")
