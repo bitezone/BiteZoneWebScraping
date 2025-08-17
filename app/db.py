@@ -7,6 +7,8 @@ from sqlalchemy.orm import sessionmaker, scoped_session, Session
 from .models import Base, Menu, MenuItem, Ingredient, Allergy
 from .enums import MealLocation
 from .dataclasses import MenuItemData
+from dotenv import load_dotenv
+load_dotenv()
 
 # Exposed functions and variables
 __all__ = ["add_or_update_menu", "create_menu_item_db", "connect_menu_and_menu_items"]

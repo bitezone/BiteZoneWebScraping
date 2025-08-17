@@ -312,7 +312,7 @@ def get_calorie():
         calorie_text = calorie_element.get_attribute("innerText")
     except Exception as e:
         print("Error in getting the calorie")
-        print(e)
+
         return -1
 
     return int(calorie_text)

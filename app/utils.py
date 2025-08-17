@@ -46,6 +46,6 @@ def split_allergies(raw: str) -> list[str]:
     cleaned = raw.replace("&nbsp;", " ")
     # Split on ', ' (comma and space)
     parts = cleaned.split(", ")
-    print(parts)
+  
     # Normalize whitespace
     return [re.sub(r'\s+', ' ', part).strip() for part in parts if part.strip()]

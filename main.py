@@ -43,7 +43,7 @@ def main():
     #     try: 
     #         driver: WebDriver = WebDriverManager.get_driver()
     #         url = os.getenv("SELECTED_WEBSCRAPE_URL") # Scrapes SUNY Oswego dining hall website
-            
+    #         print(url, type(url)) 
     #         driver.get(url)
     #         driver.set_window_size(1920, 1080)
     #         print("-----")
@@ -55,13 +55,13 @@ def main():
     #             print("Scraping " + str(i) + "th dining hall")
     #             app.scrape_each_dining_hall(i)
     #         atexit.register(WebDriverManager.quit_driver)
-    #         print("Sleeping for 1 hour...")
-    #         time.sleep(3600) 
+    #         print("Sleeping for 3 hours...")
+    #         time.sleep(10800) 
     #     except Exception as e:
     #         print("!!!---")
     #         print(f"Error occurred: {e}")
     #         print("!!!---")
-    #         print("Retrying in 1 hour...")
+    #         print("Retrying in 1 hours...")
     #         time.sleep(3600)
             
     #     program_iteration_number += 1
