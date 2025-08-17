@@ -10,3 +10,5 @@ DeveloperREADME.md
 /playground/
 /compiledFiles/
 /temp/.env
+__pycache__/
+*.pyc
