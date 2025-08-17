@@ -17,16 +17,20 @@ from sqlalchemy.orm import Session
 from app.web_driver import WebDriverManager
 from dotenv import load_dotenv
 
+
 def main():
     program_iteration_number = 1
 
     # Load environment variables from .env file
-    load_dotenv() 
-    
-    
+    load_dotenv()
+
+    start = time.time()
+
     driver: WebDriver = WebDriverManager.get_driver()
     try:
-        url = os.getenv("SELECTED_WEBSCRAPE_URL") # Scrapes SUNY Oswego dining hall website
+        url = os.getenv(
+            "SELECTED_WEBSCRAPE_URL"
+        )  # Scrapes SUNY Oswego dining hall website
 
         driver.get(url)
         driver.set_window_size(1920, 1080)
@@ -45,13 +49,21 @@ def main():
     finally:
         WebDriverManager.quit_driver()
         print("Scraping finished")
-    
+
+    end = time.time()
+    execution_time = end - start
+
+    minutes = int(execution_time // 60)
+    seconds = execution_time % 60
+
+    print(f"Execution finished in {execution_time:.2f} seconds")
+    print(f"Execution finished in {minutes} minutes and {seconds:.2f} seconds")
     # while True:
 
-    #     try: 
+    #     try:
     #         driver: WebDriver = WebDriverManager.get_driver()
     #         url = os.getenv("SELECTED_WEBSCRAPE_URL") # Scrapes SUNY Oswego dining hall website
-    #         print(url, type(url)) 
+    #         print(url, type(url))
     #         driver.get(url)
     #         driver.set_window_size(1920, 1080)
     #         print("-----")
@@ -64,14 +76,14 @@ def main():
     #             app.scrape_each_dining_hall(i)
     #         atexit.register(WebDriverManager.quit_driver)
     #         print("Sleeping for 3 hours...")
-    #         time.sleep(10800) 
+    #         time.sleep(10800)
     #     except Exception as e:
     #         print("!!!---")
     #         print(f"Error occurred: {e}")
     #         print("!!!---")
     #         print("Retrying in 1 hours...")
     #         time.sleep(3600)
-            
+
     #     program_iteration_number += 1
 
 
