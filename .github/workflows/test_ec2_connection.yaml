@@ -1,0 +1,27 @@
+name: Test EC2 Connection
+
+on:
+  workflow_dispatch:  # lets you trigger manually from GitHub UI
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test-ec2:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::719136958881:role/bitezone_web_scraping_github_actions_role
+          aws-region: us-east-1   # change if needed
+
+      - name: Send test command via SSM
+        run: |
+          aws ssm send-command \
+            --targets "Key=instanceIds,Values=i-xxxxxxxxxxxx" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Test GitHub → EC2 SSM" \
+            --parameters 'commands=["echo Hello from GitHub Actions > /tmp/gha_test.txt"]'
