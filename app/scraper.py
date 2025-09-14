@@ -252,16 +252,23 @@ def get_nutritional_information(
 ) -> MenuItemData:
     driver: WebDriver = WebDriverManager.get_driver()
 
-    existing_menu_item = get_menu_item(menu_item_obj)
+    existing_menu_item: MenuItem | None = get_menu_item(menu_item_obj)
 
-    if existing_menu_item:
+    if (
+        existing_menu_item
+        and existing_menu_item.serving_size != None
+        and existing_menu_item.serving_size != None
+    ):
+
         menu_item_obj.serving_size = existing_menu_item.serving_size
         menu_item_obj.calories_per_serving = existing_menu_item.calories_per_serving
 
         menu_item_obj.ingredients = existing_menu_item.ingredients
         menu_item_obj.allergies = existing_menu_item.allergies
         return menu_item_obj
-
+    if (existing_menu_item and existing_menu_item.serving_size == None
+        and existing_menu_item.serving_size == None):
+        print(existing_menu_item.name, " does not have calroies or serving size")
     try:
         # ActionChains(driver).click(menu_item_selector).perform()
         element = WebDriverWait(driver, 10).until(
@@ -315,7 +322,6 @@ def get_serving_size() -> str | None:
 
     print("Error in getting serving size")
     return None
-
 
 
 def get_calorie():
@@ -396,3 +402,9 @@ def get_allergies() -> List[str]:
     print("Error in getting allergies")
     return []
 
+
+# Code for filling out empty serving size and calories
+def check_serving_size_and_calories(
+    menu_item: "MenuItem | None", menu_item_selector: WebElement
+):
+    driver: WebDriver = WebDriverManager.get_driver()

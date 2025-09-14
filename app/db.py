@@ -8,6 +8,7 @@ from .models import Base, Menu, MenuItem, Ingredient, Allergy
 from .enums import MealLocation
 from .dataclasses import MenuItemData
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Exposed functions and variables
@@ -91,6 +92,12 @@ def create_menu_item_db(menu_item_obj: MenuItemData) -> MenuItem:
 
         # Check if a change is detected
         if existing_menu_item.serving_size != menu_item_obj.serving_size:
+            print(
+                "Change detected for serving size: "
+                + str(existing_menu_item.serving_size)
+                + " vs " +
+                str(menu_item_obj.serving_size),
+            )
             existing_menu_item.serving_size = menu_item_obj.serving_size
             updated = True
 
@@ -99,6 +106,12 @@ def create_menu_item_db(menu_item_obj: MenuItemData) -> MenuItem:
             existing_menu_item.calories_per_serving
             != menu_item_obj.calories_per_serving
         ):
+            print(
+                "Change detected for calories size: "
+                + str(existing_menu_item.calories_per_serving)
+                + " vs " +
+                str(menu_item_obj.calories_per_serving)
+            )
             existing_menu_item.calories_per_serving = menu_item_obj.calories_per_serving
             updated = True
 
@@ -177,5 +190,5 @@ def get_menu_item(menu_item_obj: MenuItemData) -> "MenuItem | None":
         )
         .first()
     )
-     
+
     return existing_menu_item
