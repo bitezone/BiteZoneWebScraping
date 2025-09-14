@@ -26,8 +26,4 @@ jobs:
             --targets "Key=instanceIds,Values=${{ secrets.EC2_INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy: git pull and log" \
-            --parameters 'commands=[
-              "cd /home/ec2-user/BiteZoneWebScraping",
-              "git pull origin main",
-              "echo Pulled at $(date) >> /home/ec2-user/logs/web_scraping_deploy_logs.txt"
-            ]'
+            --parameters 'commands=["bash /home/ec2-user/scripts/deploy_web_scraping.sh"]'
