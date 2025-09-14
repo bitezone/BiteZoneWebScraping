@@ -21,7 +21,7 @@ jobs:
       - name: Send test command via SSM
         run: |
           aws ssm send-command \
-            --targets "Key=instanceIds,Values=i-xxxxxxxxxxxx" \
+            --targets "Key=instanceIds,Values=i-0ab495cc2bd27ada6" \
             --document-name "AWS-RunShellScript" \
             --comment "Test GitHub → EC2 SSM" \
             --parameters 'commands=["echo Hello from GitHub Actions > /tmp/gha_test.txt"]'
